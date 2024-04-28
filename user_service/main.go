@@ -18,4 +18,11 @@ func main() {
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal().Err(err).Msg("Failed to start server")
 	}
+
+	dbSQL, err := db.DB()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to get database connection")
+	}
+
+	defer dbSQL.Close()
 }

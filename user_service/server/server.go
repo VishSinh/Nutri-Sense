@@ -1,24 +1,26 @@
 package server
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	// "user_service/handlers"
+
+	"user_service/handlers"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	fmt.Println("Server started at http://127.0.0.1:8080")
+	log.Println("Server started at http://127.0.0.1:8080")
 
 	// Write an example endpoint
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	r.GET("/ping", handlers.Ping)
+
+	userHandler := handlers.UserHandler{DB: db}
+
+	// Unprotected routes
+	r.POST("/signup", userHandler.SignUp)
 
 	// // Unprotected routes
 	// r.POST("/login", handlers.Login)

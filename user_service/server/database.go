@@ -33,12 +33,6 @@ func SetupDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	dbSQL, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
-	defer dbSQL.Close()
-
 	log.Println("Database connection established and schema migrated successfully")
 
 	return db, nil
