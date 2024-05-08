@@ -1,31 +1,14 @@
-package auth
+package middlewares
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"time"
+	"user_service/helpers/auth"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
-
-var jwtKey = []byte("your_secret_key") // Replace with your secret key
-
-func createToken(userID uint) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["authorized"] = true
-	claims["user_id"] = userID
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() // Token expiration time
-
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		log.Fatal("Error creating JWT token: ", err)
-		return "", err
-	}
-	return tokenString, nil
-}
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -40,7 +23,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return jwtKey, nil
+			return auth.JwtKey, nil
 		})
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
@@ -61,9 +44,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// You can now access user ID from claims["user_id"]
-		// Use it to perform actions based on the authenticated user
-		userID := uint(claims["user_id"].(float64))
+		userIDStr, ok := claims["user_id"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user_id must be a string"})
+			c.Abort()
+			return
+		}
+
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user_id format"})
+			c.Abort()
+			return
+		}
+
 		c.Set("userID", userID)
 
 		c.Next()

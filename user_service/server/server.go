@@ -7,33 +7,18 @@ import (
 	"gorm.io/gorm"
 
 	"user_service/handlers"
+	"user_service/helpers"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 	r := gin.Default()
 
-	log.Println("Server started at http://127.0.0.1:8080")
+	log.Println("Server started at " + helpers.ServerURL)
 
-	// Write an example endpoint
-	r.GET("/ping", handlers.Ping)
-
+	// Initialize handlers with the database
 	userHandler := handlers.UserHandler{DB: db}
 
-	// Unprotected routes
-	r.POST("/signup", userHandler.SignUp)
-
-	// // Unprotected routes
-	// r.POST("/login", handlers.Login)
-	// r.POST("/signup", handlers.Signup)
-
-	// // Protected routes
-	// protected := r.Group("/api")
-	// protected.Use(auth.AuthMiddleware())
-	// {
-	// 	protected.GET("/users/:id", handlers.GetUser)
-	// 	protected.PUT("/users/:id", handlers.UpdateUser)
-	// 	protected.DELETE("/users/:id", handlers.DeleteUser)
-	// }
+	SetupRoutes(r, &userHandler)
 
 	return r
 }
