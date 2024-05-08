@@ -40,7 +40,6 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 	}
 
 	hashedPassword, err := auth.HashPassword(user.Password)
-
 	if err != nil {
 		helpers.ResponseObj(http.StatusInternalServerError, false, "An error occured", gin.H{}, ctx)
 		return
@@ -64,7 +63,6 @@ func (uh *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	// Generate JWT token
 	token, err := auth.CreateToken(newUser.ID)
 	if err != nil {
 		helpers.ResponseObj(http.StatusInternalServerError, false, "Failed to create user", gin.H{}, ctx)
@@ -103,7 +101,6 @@ func (uh *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	// Generate JWT token
 	token, err := auth.CreateToken(existingUser.ID)
 	if err != nil {
 		helpers.ResponseObj(http.StatusInternalServerError, false, "Failed to create user", gin.H{}, ctx)
@@ -165,4 +162,34 @@ func (uh *UserHandler) AddUserDetails(ctx *gin.Context) {
 	}
 
 	helpers.ResponseObj(http.StatusCreated, true, "User details added successfully", gin.H{}, ctx)
+}
+
+func (uh *UserHandler) GetUserDetails(ctx *gin.Context) {
+	userID := ctx.MustGet("userID").(uuid.UUID)
+	if userID == uuid.Nil {
+		helpers.ResponseObj(http.StatusUnauthorized, false, "Invalid user", gin.H{}, ctx)
+		return
+	}
+
+	var userDetails models.UserDetails
+	if err := uh.DB.Where("user_id = ?", userID).First(&userDetails).Error; err != nil {
+		helpers.ResponseObj(http.StatusNotFound, false, "User details not found", gin.H{}, ctx)
+		return
+	}
+
+	var user models.User
+	if err := uh.DB.Where("id = ?", userID).First(&user).Error; err != nil {
+		helpers.ResponseObj(http.StatusNotFound, false, "User not found", gin.H{}, ctx)
+		return
+	}
+
+	responseData := gin.H{
+		"username": user.Username,
+		"name":     userDetails.Name,
+		"age":      userDetails.Age,
+		"weight":   userDetails.Weight,
+		"height":   userDetails.Height,
+	}
+
+	helpers.ResponseObj(http.StatusOK, true, "User details fetched successfully", responseData, ctx)
 }

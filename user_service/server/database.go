@@ -33,6 +33,10 @@ func SetupDatabase() (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if err := db.AutoMigrate(&models.UserDetails{}); err != nil {
+		return nil, err
+	}
+
 	log.Println("Database connection established and schema migrated successfully")
 
 	return db, nil

@@ -9,4 +9,5 @@ const (
 	SignUpURL      = "/signup"
 	LoginURL       = "/login"
 	AddUserDetails = "/user/details/add"
+	GetUserDetails = "/user/details"
 )
